@@ -1,0 +1,1 @@
+export default "precision highp float;\n\nattribute vec2 points;\nvarying vec2 coords;\n\nvoid main() {\n    coords = points * 0.5 + 0.5;\n    gl_Position = vec4(points, 0.0, 1.0);\n}"

@@ -1,0 +1,1 @@
+export default "precision highp float;\nprecision mediump sampler2D;\n\nvarying vec2 coords;\nuniform sampler2D density;\n\nvoid main () {\n    gl_FragColor = texture2D(density, coords);\n}"

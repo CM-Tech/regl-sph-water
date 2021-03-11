@@ -1,0 +1,1 @@
+export default "precision mediump float;\nprecision mediump sampler2D;\n\nvarying vec2 coords;\nuniform vec2 ratio;\nuniform sampler2D density;\nuniform sampler2D image;\n\nvoid main(void) {\n  vec2 pos = vec2(coords.x - 0.5, 0.5 - coords.y) * ratio * 2.0 + vec2(0.5, 0.5);\n  vec4 base2 = texture2D(image, pos);\n  gl_FragColor = texture2D(density, coords) + base2 * 0.01;\n}"
