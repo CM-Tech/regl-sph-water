@@ -136,7 +136,7 @@ export const update = (config) => {
   framesTodo = 16;
   while ((iTime = (window.performance.now() - timeStart) / 1e3) - iTimeS < 1 / 60 && r < framesTodo || r < 1) {
     r += 1;
-    let dt = Math.min(1 / Math.max(framesTodo, 1) * 16, 1) * 1;
+    let dt = Math.min(1 / Math.max(framesTodo, 1) * 16, 1) * 0.5;
     ACalc({framebuffer: AXT.write, iFrame, iTime, iMouse, dt, tar: 0});
     BCalc({framebuffer: BXT.write, iFrame, iTime, iMouse, dt, tar: 0});
     ACalc({framebuffer: AVT.write, iFrame, iTime, iMouse, dt, tar: 1});
