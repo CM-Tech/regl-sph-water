@@ -8,8 +8,8 @@ regl.frame(() => {
     fullscreen(() => {
         // if (window.scrollY < window.innerHeight / 2) drawLogo(1.0 - config.DENSITY_DISSIPATION);
         // if (pointer.moved) {
-        //     createSplat(pointer.x, pointer.y, pointer.dx, pointer.dy, pointer.color, config.SPLAT_RADIUS);
-        //     pointer.moved = false;
+            createSplat(pointer.x, pointer.y, pointer.dx/100, pointer.dy/100, pointer.color, config.SPLAT_RADIUS);
+            // pointer.moved = false;
         // }
         update(config);
         display();

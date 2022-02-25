@@ -15,6 +15,7 @@ import commonShader from "../shaders/common.frag";
 import AShader from "../shaders/A.frag";
 import BShader from "../shaders/B.frag";
 import CShader from "../shaders/C.frag";
+import SShader from "../shaders/S.frag";
 import display2Shader from "../shaders/display2.frag";
 
 // import imgURL from "../public/images/logo.png";
@@ -120,6 +121,29 @@ const CCalc = regl({
     viewport,
 });
 
+const SCalc = regl({
+    frag: (commonShader+"\n"+SShader),
+    framebuffer: regl.prop("framebuffer"),
+    uniforms: {
+        iFrame:regl.prop("iFrame"),
+        iTime:regl.prop("iTime"),
+        iMouse:regl.prop("iMouse"),dt:regl.prop("dt"),
+        iChannel0: () => ATex.read,
+        iChannel1: () => ATex.read,
+        iChannel2: () => ATex.read,
+        XT: () => AXT.read,
+        VT: () => AVT.read,
+        MT: () => AMT.read,
+        tar: regl.prop("tar"),
+        
+        splatCenter: regl.prop("point"),
+        splatM: regl.prop("color"),
+        splatV: regl.prop("vel"),
+        radius: regl.prop("radius"),
+        texelSize,
+    },
+    viewport,
+});
 // export const display = regl({
 //     frag:( displayShader),
 //     uniforms: {
@@ -131,13 +155,18 @@ const CCalc = regl({
 
 
 export function createSplat(x, y, dx, dy, color, radius) {
-    // splat({
-    //     framebuffer: velocity.write,
-    //     uTarget: velocity.read,
-    //     point: [x / window.innerWidth, 1 - y / window.innerHeight],
-    //     radius,
-    //     color: [dx, -dy, 1],
-    // });
+    let q = {
+        point: [x / window.innerWidth, 1 - y / window.innerHeight],
+        radius,
+        color,
+        vel: [dx, -dy],
+    };
+    SCalc({framebuffer:AXT.write,iFrame,iTime,iMouse,dt:1,tar:0,...q});
+    SCalc({framebuffer:AMT.write,iFrame,iTime,iMouse,dt:1,tar:2,...q});
+    SCalc({framebuffer:AVT.write,iFrame,iTime,iMouse,dt:1,tar:1,...q});
+    AXT.swap();
+    AVT.swap();
+    AMT.swap();
     // velocity.swap();
 
     // splat({
