@@ -38,10 +38,12 @@ void main()
     vec3 Nb = bN(P.X);
     float bord = smoothstep(2.*border_h,border_h*0.5,border(pos));
     
-    vec4 rho = V(pos);
-    vec3 dx = vec3(-2., 0., 2.);
-    vec4 grad = -0.5*vec4(V(pos + dx.zy).zw - V(pos + dx.xy).zw,
-                         V(pos + dx.yz).zw - V(pos + dx.yx).zw);
+    vec3 dx = vec3(-1., 0., 1.);
+
+    vec4 rho = (V(pos)+V(pos + dx.zy)+V(pos + dx.xy)+V(pos + dx.yz)+V(pos + dx.yx))/5.0;
+    float g=2.0;
+    vec4 grad = -1.0/g*vec4(V(pos + dx.zy*g).zw - V(pos + dx.xy*g).zw,
+                         V(pos + dx.yz*g).zw - V(pos + dx.yx*g).zw);
     vec2 N = pow(length(grad.xz),0.2)*normalize(grad.xz+1e-5);
     float specular = pow(max(dot(N, Dir(1.4)), 0.), 3.5);
     float specularb = G(0.4*(Nb.zz - border_h))*pow(max(dot(Nb.xy, Dir(1.4)), 0.), 3.);
@@ -50,7 +52,7 @@ void main()
     float b = exp(-1.7*smoothstep(fluid_rho*1., fluid_rho*7.5, rho.z));
     vec3 col0 = P.M.yzw;//vec3(1., 0.5, 0.);
     vec3 col1 = P.M.yzw;//vec3(0.1, 0.4, 1.);
-	vec3 fcol = mixN(col0, col1, tanh3(vec3(3.*(rho.w - 0.7))).x*0.5 + 0.5);
+	vec3 fcol =P.M.yzw;// mixN(col0, col1, tanh3(vec3(3.*(rho.w - 0.7))).x*0.5 + 0.5);
     // Output to screen
     col = vec4(3.);
     col.xyz = mixN(col.xyz, fcol.xyz*(1.5*b + specular*5.), a);

@@ -215,7 +215,7 @@ void Reintegration(sampler2D ch,sampler2D ch1,sampler2D ch2,inout particle P,vec
     }
     
     //normalization
-    if(P.M.x>0.01)
+    if(P.M.x>0.0001)
     {
         P.X/=P.M.x;
         P.V/=P.M.x;
