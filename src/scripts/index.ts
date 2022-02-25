@@ -33,6 +33,27 @@ document.addEventListener("mousemove", (e) => {
     pointer.x = e.clientX;
     pointer.y = e.clientY;
 });
+document.addEventListener("touchmove", (e) => {
+    pointer.moved = true;
+    pointer.dx = (e.changedTouches[0].clientX - pointer.x) * 10;
+    pointer.dy = (e.changedTouches[0].clientY - pointer.y) * 10;
+    pointer.x = e.changedTouches[0].clientX;
+    pointer.y = e.changedTouches[0].clientY;
+});
+document.addEventListener("touchstart", (e) => {
+    pointer.moved = true;
+    pointer.dx = (e.changedTouches[0].clientX - pointer.x) * 10;
+    pointer.dy = (e.changedTouches[0].clientY - pointer.y) * 10;
+    pointer.x = e.changedTouches[0].clientX;
+    pointer.y = e.changedTouches[0].clientY;
+});
+document.addEventListener("touchend", (e) => {
+    pointer.moved = true;
+    pointer.dx = (e.changedTouches[0].clientX - pointer.x) * 10;
+    pointer.dy = (e.changedTouches[0].clientY - pointer.y) * 10;
+    pointer.x = e.changedTouches[0].clientX;
+    pointer.y = e.changedTouches[0].clientY;
+});
 document.addEventListener("mousedown", () => {
     pointer.color = [Math.random() + 0.2, Math.random() + 0.2, Math.random() + 0.2];
 });
