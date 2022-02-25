@@ -1,13 +1,8 @@
 import {regl} from "./canvas.js";
 import {TEXTURE_DOWNSAMPLE} from "./constants.js";
-import {velocity, density, pressure, divergenceTex, ATex, BTex, CTex} from "./fbos.js";
+import {AXT, AVT, AMT, BXT, BVT, BMT, ATex, BTex, CTex} from "./fbos.js";
 import projectShader from "../shaders/project.js";
 import splatShader from "../shaders/splat.js";
-import advectShader from "../shaders/advect.js";
-import divergenceShader from "../shaders/divergence.js";
-import clearShader from "../shaders/clear.js";
-import gradientSubtractShader from "../shaders/gradientSubtract.js";
-import jacobiShader from "../shaders/jacobi.js";
 import commonShader from "../shaders/common.js";
 import AShader from "../shaders/A.js";
 import BShader from "../shaders/B.js";
@@ -50,6 +45,10 @@ const ACalc = regl({
     iChannel0: () => BTex.read,
     iChannel1: () => BTex.read,
     iChannel2: () => BTex.read,
+    XT: () => BXT.read,
+    VT: () => BVT.read,
+    MT: () => BMT.read,
+    tar: regl.prop("tar"),
     texelSize
   },
   viewport
@@ -65,6 +64,10 @@ const BCalc = regl({
     iChannel0: () => ATex.read,
     iChannel1: () => ATex.read,
     iChannel2: () => ATex.read,
+    XT: () => AXT.read,
+    VT: () => AVT.read,
+    MT: () => AMT.read,
+    tar: regl.prop("tar"),
     texelSize
   },
   viewport
@@ -80,78 +83,15 @@ const CCalc = regl({
     iChannel0: () => ATex.read,
     iChannel1: () => ATex.read,
     iChannel2: () => ATex.read,
-    texelSize
-  },
-  viewport
-});
-const advect = regl({
-  frag: advectShader,
-  framebuffer: regl.prop("framebuffer"),
-  uniforms: {
-    timestep: 0.017,
-    dissipation: regl.prop("dissipation"),
-    color: regl.prop("color"),
-    x: regl.prop("x"),
-    velocity: () => velocity.read,
-    texelSize
-  },
-  viewport
-});
-const divergence = regl({
-  frag: divergenceShader,
-  framebuffer: divergenceTex,
-  uniforms: {
-    velocity: () => velocity.read,
-    texelSize
-  },
-  viewport
-});
-const clear = regl({
-  frag: clearShader,
-  framebuffer: () => pressure.write,
-  uniforms: {
-    pressure: () => pressure.read,
-    dissipation: regl.prop("dissipation")
-  },
-  viewport
-});
-const gradientSubtract = regl({
-  frag: gradientSubtractShader,
-  framebuffer: () => velocity.write,
-  uniforms: {
-    pressure: () => pressure.read,
-    velocity: () => velocity.read,
-    texelSize
-  },
-  viewport
-});
-const jacobi = regl({
-  frag: jacobiShader,
-  framebuffer: () => pressure.write,
-  uniforms: {
-    pressure: () => pressure.read,
-    divergence: () => divergenceTex,
+    XT: () => AXT.read,
+    VT: () => AVT.read,
+    MT: () => AMT.read,
+    tar: regl.prop("tar"),
     texelSize
   },
   viewport
 });
 export function createSplat(x, y, dx, dy, color, radius) {
-  splat({
-    framebuffer: velocity.write,
-    uTarget: velocity.read,
-    point: [x / window.innerWidth, 1 - y / window.innerHeight],
-    radius,
-    color: [dx, -dy, 1]
-  });
-  velocity.swap();
-  splat({
-    framebuffer: density.write,
-    uTarget: density.read,
-    point: [x / window.innerWidth, 1 - y / window.innerHeight],
-    radius,
-    color
-  });
-  density.swap();
 }
 export function drawLogo(dissipation) {
 }
@@ -171,6 +111,10 @@ const displayU = regl({
     iChannel0: () => ATex.read,
     iChannel1: () => CTex.read,
     iChannel2: () => BTex.read,
+    XT: () => AXT.read,
+    VT: () => AVT.read,
+    MT: () => AMT.read,
+    tar: regl.prop("tar"),
     texelSize
   }
 });
@@ -189,16 +133,26 @@ export const update = (config) => {
   if (!(framesTodo > 1)) {
     framesTodo = 1;
   }
-  framesTodo = 1;
-  while ((iTime = (window.performance.now() - timeStart) / 1e3) - iTimeS < 1 / 180 && r < framesTodo || r < 1) {
+  framesTodo = 16;
+  while ((iTime = (window.performance.now() - timeStart) / 1e3) - iTimeS < 1 / 60 && r < framesTodo || r < 1) {
     r += 1;
-    let dt = Math.min(1 / Math.max(framesTodo, 1), 1);
-    ACalc({framebuffer: ATex.write, iFrame, iTime, iMouse, dt});
-    BCalc({framebuffer: BTex.write, iFrame, iTime, iMouse, dt});
-    CCalc({framebuffer: CTex.write, iFrame, iTime, iMouse, dt});
+    let dt = Math.min(1 / Math.max(framesTodo, 1) * 16, 1) * 1;
+    ACalc({framebuffer: AXT.write, iFrame, iTime, iMouse, dt, tar: 0});
+    BCalc({framebuffer: BXT.write, iFrame, iTime, iMouse, dt, tar: 0});
+    ACalc({framebuffer: AVT.write, iFrame, iTime, iMouse, dt, tar: 1});
+    BCalc({framebuffer: BVT.write, iFrame, iTime, iMouse, dt, tar: 1});
+    ACalc({framebuffer: AMT.write, iFrame, iTime, iMouse, dt, tar: 2});
+    BCalc({framebuffer: BMT.write, iFrame, iTime, iMouse, dt, tar: 2});
+    CCalc({framebuffer: CTex.write, iFrame, iTime, iMouse, dt, tar: 2});
     ATex.swap();
     BTex.swap();
     CTex.swap();
+    AXT.swap();
+    AVT.swap();
+    AMT.swap();
+    BXT.swap();
+    BVT.swap();
+    BMT.swap();
     iFrame += 1;
   }
   lastFrames = framesTodo;

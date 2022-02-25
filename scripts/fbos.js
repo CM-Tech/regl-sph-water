@@ -31,10 +31,12 @@ function createFbo(filter) {
     depthStencil: false
   });
 }
-export const velocity = doubleFbo("linear");
-export const density = doubleFbo("linear");
-export const pressure = doubleFbo("nearest");
-export const divergenceTex = createFbo("nearest");
+export const AXT = doubleFbo("linear");
+export const AMT = doubleFbo("linear");
+export const AVT = doubleFbo("linear");
+export const BXT = doubleFbo("linear");
+export const BMT = doubleFbo("linear");
+export const BVT = doubleFbo("linear");
 export const ATex = doubleFbo("linear");
 export const BTex = doubleFbo("linear");
 export const CTex = doubleFbo("linear");
