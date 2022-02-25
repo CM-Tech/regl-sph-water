@@ -39,4 +39,4 @@ export const BMT = doubleFbo("nearest");
 export const BVT = doubleFbo("nearest");
 export const ATex = doubleFbo("nearest");
 export const BTex = doubleFbo("nearest");
-export const CTex = doubleFbo("nearest");
+export const CTex = doubleFbo("linear");
