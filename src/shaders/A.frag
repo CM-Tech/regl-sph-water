@@ -12,11 +12,11 @@ void main()
      Mouse = iMouse;
     ivec2 p = ivec2(pos);
 
-    vec4 data = texel(ch0, pos); 
+    vec8 data = texelish(XT,VT,MT, pos); 
     
     particle P;// = getParticle(data, pos);
        
-    Reintegration(ch0, P, pos);
+    Reintegration(XT,VT,MT, P, pos);
    
     //initial condition
     if(iFrame < 1)

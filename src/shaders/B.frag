@@ -10,16 +10,16 @@ void main()
      //R = iResolution.xy;
     time = iTime;
      Mouse = iMouse;
-    ivec2 p = ivec2(pos);
+    //ivec2 p = ivec2(pos);
         
-    vec4 data = texel(ch0, pos); 
+    vec8 data = texelish(XT,VT,MT, pos); 
     
     particle P = getParticle(data, pos);
     
     
     if(P.M.x != 0.) //not vacuum
     {
-        Simulation(ch0, P, pos);
+        Simulation(XT,VT,MT, P, pos);
     }
     
     if(length(P.X - R*vec2(0.8, 0.9)) < 10.) 

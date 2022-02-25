@@ -31,9 +31,9 @@ void main()
    // pos = R*0.5 + (pos-R/2.0)*2.0;
     ivec2 p = ivec2(pos);
     
-    vec4 data = texel(ch0, pos);
+    vec8 data = texelish(XT,VT,MT, pos);
     particle P = getParticle(data, pos);
-    
+
     //border render
     vec3 Nb = bN(P.X);
     float bord = smoothstep(2.*border_h,border_h*0.5,border(pos));
