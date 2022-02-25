@@ -33,7 +33,7 @@ uniform sampler2D MT;
 #define range(i,a,b) for(int i = a; i <= b; i++)
 
 
-#define border_h 5.
+#define border_h 10.
 vec4 Mouse;
 float time;
 
@@ -70,7 +70,8 @@ float border(vec2 p)
     float bound = -sdBox(p - R*0.5, R*vec2(0.5, 0.5)); 
     float box = sdBox(Rot(0.*time)*(p - R*vec2(0.5, 0.6)) , R*vec2(0.05, 0.01));
     float drain = -sdBox(p - R*vec2(0.5, 0.7), R*vec2(1.5, 0.5));
-    return max(drain,min(bound, box));
+    vec2 pg=p - R*vec2(0.5, 0.5);
+    return min(max(drain,min(bound, box)), (length(p - R*vec2(iMouse.x, iMouse.y))-10.0));
 }
 
 #define h 1.
