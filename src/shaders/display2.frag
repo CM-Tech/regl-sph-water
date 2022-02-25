@@ -48,8 +48,8 @@ void main()
     
     float a = pow(smoothstep(fluid_rho*0., fluid_rho*2., rho.z),0.1);
     float b = exp(-1.7*smoothstep(fluid_rho*1., fluid_rho*7.5, rho.z));
-    vec3 col0 = vec3(1., 0.5, 0.);
-    vec3 col1 = vec3(0.1, 0.4, 1.);
+    vec3 col0 = P.M.yzw;//vec3(1., 0.5, 0.);
+    vec3 col1 = P.M.yzw;//vec3(0.1, 0.4, 1.);
 	vec3 fcol = mixN(col0, col1, tanh3(vec3(3.*(rho.w - 0.7))).x*0.5 + 0.5);
     // Output to screen
     col = vec4(3.);

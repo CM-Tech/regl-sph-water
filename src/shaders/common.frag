@@ -41,7 +41,7 @@ float time;
 
 #define fluid_rho 0.5
 
-float Pf(vec2 rho)
+float Pf(vec4 rho)
 {
     //return 0.2*rho.x; //gas
     float GF = 1.;//smoothstep(0.49, 0.5, 1. - rho.y);
@@ -110,7 +110,7 @@ struct particle
 {
     vec2 X;
     vec2 V;
-    vec2 M;
+    vec4 M;
 };
 struct vec8
 {
@@ -133,6 +133,8 @@ vec8 texelish(sampler2D a,sampler2D b, sampler2D c, vec2 p){
     voodo.w=texture2D(b,p/R).y;
     voodo.r=texture2D(c,p/R).x;
     voodo.g=texture2D(c,p/R).y;
+    voodo.b=texture2D(c,p/R).z;
+    voodo.a=texture2D(c,p/R).w;
     return voodo;
 }
 particle getParticle(vec8 data, vec2 pos)
@@ -140,7 +142,7 @@ particle getParticle(vec8 data, vec2 pos)
     particle P; 
     P.X = vec2(data.x,data.y) + pos;
     P.V = vec2(data.z,data.w);
-    P.M = vec2(data.r,data.g);
+    P.M = vec4(data.r,data.g,data.b,data.a);
     return P;
 }
 
@@ -153,13 +155,15 @@ vec4 saveParticle(particle P, vec2 pos)
     voodo.z=P.V.x;
     voodo.w=P.V.y;
     voodo.r=P.M.x;
-    voodo.g=P.M.x;
+    voodo.g=P.M.y;
+    voodo.b=P.M.z;
+    voodo.a=P.M.w;
     if(tar==0){
 return vec4(P.X,0.,1.);
     }else if(tar==1){
 return vec4(P.V,0.,1.);
     }else{
-return vec4(P.M,0.,1.);
+return P.M;
     }
 }
 
@@ -226,7 +230,7 @@ void Reintegration(sampler2D ch,sampler2D ch1,sampler2D ch2, inout particle P, v
         //add weighted by mass
         P.X += D.xy*m;
         P.V += P0.V*m;
-        P.M.y += P0.M.y*m;
+        P.M.yzw += P0.M.yzw*m;
         
         //add mass
         P.M.x += m;
@@ -237,7 +241,7 @@ void Reintegration(sampler2D ch,sampler2D ch1,sampler2D ch2, inout particle P, v
     {
         P.X /= P.M.x;
         P.V /= P.M.x;
-        P.M.y /= P.M.x;
+        P.M.yzw /= P.M.x;
     }
 }
 

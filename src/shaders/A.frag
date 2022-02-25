@@ -27,13 +27,13 @@ void main()
         {
             P.X = pos;
             P.V = 0.5*(rand.xy-0.5) + vec2(0., 0.);
-            P.M = vec2(mass, 0.);
+            P.M = vec4(mass, 0.,0.,0.);
         }
         else
         {
             P.X = pos;
             P.V = vec2(0.);
-            P.M = vec2(1e-6);
+            P.M = vec4(1e-6);
         }
     }
     
