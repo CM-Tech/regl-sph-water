@@ -228,11 +228,11 @@ export const update = (config) => {
     if(!(framesTodo>1)){
         framesTodo=1;
     }
-    framesTodo=16;
+    framesTodo=8;
     while((((iTime=(window.performance.now()-timeStart)/1000)-iTimeS<1/60) && r<framesTodo) || r<1 ){
         // if(iFrame===0)console.log(r,"I",iTime)
         r+=1;
-        let dt=Math.min(1/Math.max(framesTodo,1)*16,1);
+        let dt=Math.min(1/Math.max(framesTodo,1)*8,1);
         // lastUpdate=iTime;
 
     ACalc({framebuffer:AXT.write,iFrame,iTime,iMouse,dt,tar:0});

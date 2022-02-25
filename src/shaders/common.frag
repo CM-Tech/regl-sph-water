@@ -131,6 +131,7 @@ vec4 saveParticle(particle P,vec2 pos)
     }
     vec8 voodo;
     P.X=clamp(P.X-pos,vec2(-.5),vec2(.5));
+    P.V=clamp(P.V,vec2(-1.),vec2(1.));
     voodo.x=P.X.x;
     voodo.y=P.X.y;
     voodo.z=P.V.x;
@@ -204,7 +205,7 @@ void Reintegration(sampler2D ch,sampler2D ch1,sampler2D ch2,inout particle P,vec
         P0.X+=P0.V*dt;//integrate position
         
         float difR=.9+.21*smoothstep(fluid_rho*0.,fluid_rho*.333,P0.M.x);
-        vec3 D=distribution(P0.X,pos,difR);
+        vec3 D=distribution(P0.X,pos,max(difR,0.001));
         //the deposited mass into this cell
         float m=P0.M.x*D.z;
         
@@ -218,7 +219,7 @@ void Reintegration(sampler2D ch,sampler2D ch1,sampler2D ch2,inout particle P,vec
     }
     
     //normalization
-    if(P.M.x>0.0001)
+    if(P.M.x>0.001)
     {
         P.X/=P.M.x;
         P.V/=P.M.x;
@@ -252,16 +253,16 @@ void Simulation(sampler2D ch,sampler2D ch1,sampler2D ch2,inout particle P,vec2 p
     //gravity
     F+=P.M.x*vec2(0.,-.004);
     
-    if(Mouse.z>0.)
-    {
-        vec2 dm=(Mouse.xy-Mouse.zw)/10.;
-        float d=distance(Mouse.xy,P.X)/20.;
-        F+=.001*dm*exp(-d*d);
-        // P.M.y += 0.1*exp(-40.*d*d);
-    }
+    // if(Mouse.z>0.)
+    // {
+    //     vec2 dm=(Mouse.xy-Mouse.zw)/10.;
+    //     float d=distance(Mouse.xy,P.X)/20.;
+    //     F+=.001*dm*exp(-d*d);
+    //     // P.M.y += 0.1*exp(-40.*d*d);
+    // }
     
     //integrate
-    P.V+=F*dt/P.M.x;
+    P.V+=F*dt/max(P.M.x,0.001);
     
     //border
     vec3 N=bN(P.X);

@@ -59,6 +59,8 @@ void main()
     col.xyz = mixN(col.xyz, 0.*vec3(0.5,0.5,1.), bord);
     col.xyz = tanh3(col.xyz);
     col.w=1.0;
+    // col.xyz=vec3(0.0);
+    // col.xy=P.X-pos;
     gl_FragColor=col;
    // particle Pg = getParticle(vec4(1.0,0.5,0.0,1.0), pos);
     //gl_FragColor= vec4(saveParticle(Pg, pos).xy,0.0,1.0);
