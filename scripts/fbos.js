@@ -31,12 +31,12 @@ function createFbo(filter) {
     depthStencil: false
   });
 }
-export const AXT = doubleFbo("linear");
-export const AMT = doubleFbo("linear");
-export const AVT = doubleFbo("linear");
-export const BXT = doubleFbo("linear");
-export const BMT = doubleFbo("linear");
-export const BVT = doubleFbo("linear");
-export const ATex = doubleFbo("linear");
-export const BTex = doubleFbo("linear");
-export const CTex = doubleFbo("linear");
+export const AXT = doubleFbo("nearest");
+export const AMT = doubleFbo("nearest");
+export const AVT = doubleFbo("nearest");
+export const BXT = doubleFbo("nearest");
+export const BMT = doubleFbo("nearest");
+export const BVT = doubleFbo("nearest");
+export const ATex = doubleFbo("nearest");
+export const BTex = doubleFbo("nearest");
+export const CTex = doubleFbo("nearest");

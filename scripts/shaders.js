@@ -7,6 +7,7 @@ import commonShader from "../shaders/common.js";
 import AShader from "../shaders/A.js";
 import BShader from "../shaders/B.js";
 import CShader from "../shaders/C.js";
+import SShader from "../shaders/S.js";
 import display2Shader from "../shaders/display2.js";
 const texelSize = ({viewportWidth, viewportHeight}) => [1 / viewportWidth, 1 / viewportHeight];
 const viewport = ({viewportWidth, viewportHeight}) => ({
@@ -91,7 +92,42 @@ const CCalc = regl({
   },
   viewport
 });
+const SCalc = regl({
+  frag: commonShader + "\n" + SShader,
+  framebuffer: regl.prop("framebuffer"),
+  uniforms: {
+    iFrame: regl.prop("iFrame"),
+    iTime: regl.prop("iTime"),
+    iMouse: regl.prop("iMouse"),
+    dt: regl.prop("dt"),
+    iChannel0: () => ATex.read,
+    iChannel1: () => ATex.read,
+    iChannel2: () => ATex.read,
+    XT: () => AXT.read,
+    VT: () => AVT.read,
+    MT: () => AMT.read,
+    tar: regl.prop("tar"),
+    splatCenter: regl.prop("point"),
+    splatM: regl.prop("color"),
+    splatV: regl.prop("vel"),
+    radius: regl.prop("radius"),
+    texelSize
+  },
+  viewport
+});
 export function createSplat(x, y, dx, dy, color, radius) {
+  let q = {
+    point: [x / window.innerWidth, 1 - y / window.innerHeight],
+    radius,
+    color,
+    vel: [dx, -dy]
+  };
+  SCalc({framebuffer: AXT.write, iFrame, iTime, iMouse, dt: 1, tar: 0, ...q});
+  SCalc({framebuffer: AMT.write, iFrame, iTime, iMouse, dt: 1, tar: 2, ...q});
+  SCalc({framebuffer: AVT.write, iFrame, iTime, iMouse, dt: 1, tar: 1, ...q});
+  AXT.swap();
+  AVT.swap();
+  AMT.swap();
 }
 export function drawLogo(dissipation) {
 }
