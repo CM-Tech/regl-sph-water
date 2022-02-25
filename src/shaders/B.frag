@@ -22,17 +22,17 @@ void main()
         Simulation(XT,VT,MT, P, pos);
     }
     
-    if(length(P.X - R*vec2(0.8, 0.9)) < 10.) 
+    if(length(P.X - R*vec2(0.8, 0.1)) < 8.) 
     {
         P.X = pos;
-        P.V = 0.5*Dir(-PI*0.25 - PI*0.5 + 0.3*sin(0.4*time));
+        P.V = Dir(PI*0.5  + 0.3*sin(0.4*time));
         P.M = mix(P.M, vec2(fluid_rho, 1.), 0.4);
     }
 
-    if(length(P.X - R*vec2(0.2, 0.9)) < 10.) 
+    if(length(P.X - R*vec2(0.2, 0.1)) < 8.) 
     {
         P.X = pos;
-        P.V = 0.5*Dir(-PI*0.25 + 0.3*sin(0.3*time));
+        P.V = Dir(PI*0.5 + 0.3*sin(0.3*time));
         P.M = mix(P.M, vec2(fluid_rho, 0.), 0.4);
     }
     
