@@ -21,9 +21,7 @@ void main()
     {
         Simulation(XT,VT,MT, P, pos);
     }
-    if(pos.x<1.0 || pos.y<1.0 || pos.x>R.x-1.0 || pos.y>R.y-1.0){
-        P.M.x=0.;
-    }
+    
     
     // if(length(P.X - R*vec2(0.8, 0.1)) < 8.) 
     // {

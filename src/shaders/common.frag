@@ -126,6 +126,9 @@ particle getParticle(vec8 data,vec2 pos)
 
 vec4 saveParticle(particle P,vec2 pos)
 {
+    if(pos.x<1.0 || pos.y<1.0 || pos.x>R.x-1.0 || pos.y>R.y-1.0){
+        P.M.x=0.;
+    }
     vec8 voodo;
     P.X=clamp(P.X-pos,vec2(-.5),vec2(.5));
     voodo.x=P.X.x;
