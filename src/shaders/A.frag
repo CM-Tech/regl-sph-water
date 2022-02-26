@@ -12,11 +12,11 @@ void main()
      Mouse = iMouse;
     ivec2 p = ivec2(pos);
 
-    vec8 data = texelish(XT,VT,MT, pos); 
+    // vec8 data = texelish(XT,VT,MT, pos); 
     
     particle P;// = getParticle(data, pos);
        
-    Reintegration(XT,VT,MT, P, pos);
+    Reintegration( P, pos);
    
     //initial condition
     if(iFrame < 1)
@@ -27,13 +27,15 @@ void main()
         {
             P.X = pos;
             P.V = 0.5*(rand.xy-0.5) + vec2(0., 0.);
-            P.M = vec4(mass, 0.,0.,0.);
+            P.M = mass;
+            P.C = vec3(0.,0.,0.);
         }
         else
         {
             P.X = pos;
             P.V = vec2(0.);
-            P.M = vec4(1e-6);
+            P.M = (1e-6);
+            P.C = vec3(1e-6);
         }
     }
     

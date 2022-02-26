@@ -1,6 +1,9 @@
 
 varying vec2 coords;
 
+uniform sampler2D iChannel1;
+#define ch1 iChannel1
+
 vec3 hsv2rgb( in vec3 c )
 {
     vec3 rgb = clamp( abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0 );
@@ -31,8 +34,8 @@ void main()
    // pos = R*0.5 + (pos-R/2.0)*2.0;
     ivec2 p = ivec2(pos);
     
-    vec8 data = texelish(XT,VT,MT, pos);
-    particle P = getParticle(data, pos);
+    // vec8 data = texelish(XT,VT,MT, pos);
+    particle P = getParticle(pos);
 
     //border render
     vec3 Nb = bN(P.X);
@@ -50,9 +53,9 @@ void main()
     
     float a = pow(smoothstep(fluid_rho*0., fluid_rho*2., rho.z),0.1);
     float b = exp(-1.7*smoothstep(fluid_rho*1., fluid_rho*7.5, rho.z));
-    vec3 col0 = P.M.yzw;//vec3(1., 0.5, 0.);
-    vec3 col1 = P.M.yzw;//vec3(0.1, 0.4, 1.);
-	vec3 fcol =P.M.yzw;// mixN(col0, col1, tanh3(vec3(3.*(rho.w - 0.7))).x*0.5 + 0.5);
+    vec3 col0 = P.C;//vec3(1., 0.5, 0.);
+    vec3 col1 = P.C;//vec3(0.1, 0.4, 1.);
+	vec3 fcol =P.C;// mixN(col0, col1, tanh3(vec3(3.*(rho.w - 0.7))).x*0.5 + 0.5);
     // Output to screen
     col = vec4(3.);
     col.xyz = mixN(col.xyz, fcol.xyz*(1.5*b + specular*5.), a);

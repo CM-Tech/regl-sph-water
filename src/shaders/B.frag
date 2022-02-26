@@ -12,14 +12,14 @@ void main()
      Mouse = iMouse;
     //ivec2 p = ivec2(pos);
         
-    vec8 data = texelish(XT,VT,MT, pos); 
+    // vec8 data = texelish(XT,VT,MT, pos); 
     
-    particle P = getParticle(data, pos);
+    particle P = getParticle( pos);
     
     
-    if(P.M.x != 0.) //not vacuum
+    if(P.M != 0.) //not vacuum
     {
-        Simulation(XT,VT,MT, P, pos);
+        Simulation( P, pos);
     }
     
     

@@ -17,22 +17,24 @@ void main()
      Mouse = iMouse;
     //ivec2 p = ivec2(pos);
         
-    vec8 data = texelish(XT,VT,MT, pos); 
+    // vec8 data = texelish(XT,VT,MT, pos); 
     
-    particle P = getParticle(data, pos);
+    particle P = getParticle( pos);
     
     if(length(P.X - R*(splatCenter)) < 10.0) 
     {
-        float m=P.M.x;
+        float m=P.M;
     P.X*=m;
     P.V*=m;
-    P.M.yzw*=m;
+    // P.M.yzw*=m;
+    P.C*=m;
     float am=min(max(fluid_rho*2.0-m,fluid_rho*0.125),fluid_rho*0.5);
     float tm=m+am;
-    P.M.yzw*=1./tm;
+    P.C*=1./tm;
         P.X = (P.X+am*pos)/tm;
         P.V = (P.V+am*splatV)/tm;
-        P.M += vec4(am, splatM*am/tm);
+        P.M += am;
+        P.C += splatM*am/tm;
     }
 
     // if(length(P.X - R*vec2(0.2, 0.1)) < 8.) 

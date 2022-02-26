@@ -3,6 +3,7 @@ import { regl } from "./canvas";
 import * as config from "./constants";
 import { fullscreen, update, display, drawLogo, createSplat } from "./shaders";
 
+window.addEventListener('load',()=>
 regl.frame(() => {
     // const rrrr=()=>{
     fullscreen(() => {
@@ -16,7 +17,7 @@ regl.frame(() => {
     });
 //    setTimeout(rrrr,0)
 // }
-});
+}));
 
 let pointer = {
     x: 0,
