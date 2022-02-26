@@ -20,7 +20,7 @@ function createFbo(filter) {
     height: window.innerHeight >> CONSTANTS.TEXTURE_DOWNSAMPLE,
     min: filter,
     mag: filter,
-    type: "float",
+    type: "uint8",
     wrap: "clamp"
   });
   window.addEventListener("resize", () => {
@@ -31,12 +31,12 @@ function createFbo(filter) {
     depthStencil: false
   });
 }
-export const AXT = doubleFbo("nearest");
+export const AXT_X = doubleFbo("nearest");
+export const AXT_Y = doubleFbo("nearest");
+export const AVT_X = doubleFbo("nearest");
+export const AVT_Y = doubleFbo("nearest");
 export const AMT = doubleFbo("nearest");
-export const AVT = doubleFbo("nearest");
-export const BXT = doubleFbo("nearest");
-export const BMT = doubleFbo("nearest");
-export const BVT = doubleFbo("nearest");
+export const ACT = doubleFbo("nearest");
 export const ATex = doubleFbo("nearest");
 export const BTex = doubleFbo("nearest");
 export const CTex = doubleFbo("linear");

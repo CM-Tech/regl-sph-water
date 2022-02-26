@@ -1,6 +1,6 @@
 import {regl} from "./canvas.js";
 import {TEXTURE_DOWNSAMPLE} from "./constants.js";
-import {AXT, AVT, AMT, BXT, BVT, BMT, ATex, BTex, CTex} from "./fbos.js";
+import {AXT_X, AVT_X, AMT, ACT, AXT_Y, AVT_Y, CTex} from "./fbos.js";
 import projectShader from "../shaders/project.js";
 import splatShader from "../shaders/splat.js";
 import commonShader from "../shaders/common.js";
@@ -43,12 +43,12 @@ const ACalc = regl({
     iTime: regl.prop("iTime"),
     iMouse: regl.prop("iMouse"),
     dt: regl.prop("dt"),
-    iChannel0: () => BTex.read,
-    iChannel1: () => BTex.read,
-    iChannel2: () => BTex.read,
-    XT: () => AXT.read,
-    VT: () => AVT.read,
+    X_XT: () => AXT_X.read,
+    X_YT: () => AXT_Y.read,
+    V_XT: () => AVT_X.read,
+    V_YT: () => AVT_Y.read,
     MT: () => AMT.read,
+    CT: () => ACT.read,
     tar: regl.prop("tar"),
     texelSize
   },
@@ -62,12 +62,12 @@ const BCalc = regl({
     iTime: regl.prop("iTime"),
     iMouse: regl.prop("iMouse"),
     dt: regl.prop("dt"),
-    iChannel0: () => ATex.read,
-    iChannel1: () => ATex.read,
-    iChannel2: () => ATex.read,
-    XT: () => AXT.read,
-    VT: () => AVT.read,
+    X_XT: () => AXT_X.read,
+    X_YT: () => AXT_Y.read,
+    V_XT: () => AVT_X.read,
+    V_YT: () => AVT_Y.read,
     MT: () => AMT.read,
+    CT: () => ACT.read,
     tar: regl.prop("tar"),
     texelSize
   },
@@ -81,12 +81,12 @@ const CCalc = regl({
     iTime: regl.prop("iTime"),
     iMouse: regl.prop("iMouse"),
     dt: regl.prop("dt"),
-    iChannel0: () => ATex.read,
-    iChannel1: () => ATex.read,
-    iChannel2: () => ATex.read,
-    XT: () => AXT.read,
-    VT: () => AVT.read,
+    X_XT: () => AXT_X.read,
+    X_YT: () => AXT_Y.read,
+    V_XT: () => AVT_X.read,
+    V_YT: () => AVT_Y.read,
     MT: () => AMT.read,
+    CT: () => ACT.read,
     tar: regl.prop("tar"),
     texelSize
   },
@@ -100,12 +100,12 @@ const SCalc = regl({
     iTime: regl.prop("iTime"),
     iMouse: regl.prop("iMouse"),
     dt: regl.prop("dt"),
-    iChannel0: () => ATex.read,
-    iChannel1: () => ATex.read,
-    iChannel2: () => ATex.read,
-    XT: () => AXT.read,
-    VT: () => AVT.read,
+    X_XT: () => AXT_X.read,
+    X_YT: () => AXT_Y.read,
+    V_XT: () => AVT_X.read,
+    V_YT: () => AVT_Y.read,
     MT: () => AMT.read,
+    CT: () => ACT.read,
     tar: regl.prop("tar"),
     splatCenter: regl.prop("point"),
     splatM: regl.prop("color"),
@@ -122,18 +122,25 @@ export function createSplat(x, y, dx, dy, color, radius) {
     color,
     vel: [dx, -dy]
   };
-  SCalc({framebuffer: AXT.write, iFrame, iTime, iMouse, dt: 1, tar: 0, ...q});
-  SCalc({framebuffer: AMT.write, iFrame, iTime, iMouse, dt: 1, tar: 2, ...q});
-  SCalc({framebuffer: AVT.write, iFrame, iTime, iMouse, dt: 1, tar: 1, ...q});
-  AXT.swap();
-  AVT.swap();
+  SCalc({framebuffer: AXT_X.write, iFrame, iTime, iMouse, dt: 1, tar: 0, ...q});
+  SCalc({framebuffer: AXT_Y.write, iFrame, iTime, iMouse, dt: 1, tar: 1, ...q});
+  SCalc({framebuffer: AVT_X.write, iFrame, iTime, iMouse, dt: 1, tar: 2, ...q});
+  SCalc({framebuffer: AVT_Y.write, iFrame, iTime, iMouse, dt: 1, tar: 3, ...q});
+  SCalc({framebuffer: AMT.write, iFrame, iTime, iMouse, dt: 1, tar: 4, ...q});
+  SCalc({framebuffer: ACT.write, iFrame, iTime, iMouse, dt: 1, tar: 5, ...q});
+  AXT_X.swap();
+  AXT_Y.swap();
+  AVT_X.swap();
+  AVT_Y.swap();
   AMT.swap();
+  ACT.swap();
 }
 export function drawLogo(dissipation) {
 }
 let iFrame = 0;
 let iTime = 0;
-let timeStart = window.performance.now();
+let timeStarted = false;
+let timeStart = -1;
 let lastUpdate = -1;
 let lastFrames = 1;
 let iMouse = [0, 0, 0, 0];
@@ -144,55 +151,86 @@ const displayU = regl({
     iTime: regl.prop("iTime"),
     iMouse: regl.prop("iMouse"),
     dt: regl.prop("dt"),
-    iChannel0: () => ATex.read,
     iChannel1: () => CTex.read,
-    iChannel2: () => BTex.read,
-    XT: () => AXT.read,
-    VT: () => AVT.read,
+    X_XT: () => AXT_X.read,
+    X_YT: () => AXT_Y.read,
+    V_XT: () => AVT_X.read,
+    V_YT: () => AVT_Y.read,
     MT: () => AMT.read,
+    CT: () => ACT.read,
     tar: regl.prop("tar"),
     texelSize
   }
 });
 export const display = () => {
-  return iFrame % 2 == 0 ? 1 : displayU({iFrame, iTime, iMouse});
+  return displayU({iFrame, iTime, iMouse});
 };
+let fT = 1;
+let fTC = 1;
+let inRun = false;
 export const update = (config) => {
+  if (inRun) {
+    return;
+  }
+  inRun = true;
+  if (!timeStarted) {
+    timeStart = window.performance.now();
+  }
   let iTimeS = (window.performance.now() - timeStart) / 1e3;
+  if (timeStarted) {
+    fT *= 0.99;
+    fTC *= 0.99;
+    fT += (iTimeS - lastUpdate) / lastFrames;
+    fTC += 1;
+  }
+  timeStarted = true;
   let r = 0;
-  let framesTodo = lastFrames / (iTimeS - lastUpdate) * (1 / 60);
+  let FPS_T = 30;
+  let framesTodo = Math.floor(1 / FPS_T * (fTC / fT));
   lastUpdate = iTimeS;
-  framesTodo = framesTodo * 0.5 + lastFrames * 0.5;
-  if (!(framesTodo < 100)) {
-    framesTodo = 100;
+  let mxDT = 1.5;
+  let mmm = 16;
+  if (!(framesTodo < mmm)) {
+    framesTodo = mmm;
   }
   if (!(framesTodo > 1)) {
     framesTodo = 1;
   }
-  framesTodo = 8;
-  while ((iTime = (window.performance.now() - timeStart) / 1e3) - iTimeS < 1 / 60 && r < framesTodo || r < 1) {
+  let dF = 0;
+  let dt = Math.min(8 / Math.max(framesTodo, 1), mxDT);
+  while ((iTime = (window.performance.now() - timeStart) / 1e3) - iTimeS < 1 / FPS_T && r < framesTodo || r < 1) {
+    dF += 1;
     r += 1;
-    let dt = Math.min(1 / Math.max(framesTodo, 1) * 8, 1);
-    ACalc({framebuffer: AXT.write, iFrame, iTime, iMouse, dt, tar: 0});
-    ACalc({framebuffer: AMT.write, iFrame, iTime, iMouse, dt, tar: 2});
-    ACalc({framebuffer: AVT.write, iFrame, iTime, iMouse, dt, tar: 1});
-    AXT.swap();
-    AVT.swap();
+    ACalc({framebuffer: AXT_X.write, iFrame, iTime, iMouse, dt, tar: 0});
+    ACalc({framebuffer: AXT_Y.write, iFrame, iTime, iMouse, dt, tar: 1});
+    ACalc({framebuffer: AVT_X.write, iFrame, iTime, iMouse, dt, tar: 2});
+    ACalc({framebuffer: AVT_Y.write, iFrame, iTime, iMouse, dt, tar: 3});
+    ACalc({framebuffer: AMT.write, iFrame, iTime, iMouse, dt, tar: 4});
+    ACalc({framebuffer: ACT.write, iFrame, iTime, iMouse, dt, tar: 5});
+    AXT_X.swap();
+    AXT_Y.swap();
+    AVT_X.swap();
+    AVT_Y.swap();
     AMT.swap();
-    BCalc({framebuffer: AXT.write, iFrame, iTime, iMouse, dt, tar: 0});
-    BCalc({framebuffer: AVT.write, iFrame, iTime, iMouse, dt, tar: 1});
-    BCalc({framebuffer: AMT.write, iFrame, iTime, iMouse, dt, tar: 2});
-    CCalc({framebuffer: CTex.write, iFrame, iTime, iMouse, dt, tar: 2});
-    CTex.swap();
-    AXT.swap();
-    AVT.swap();
+    ACT.swap();
+    BCalc({framebuffer: AXT_X.write, iFrame, iTime, iMouse, dt, tar: 0});
+    BCalc({framebuffer: AXT_Y.write, iFrame, iTime, iMouse, dt, tar: 1});
+    BCalc({framebuffer: AVT_X.write, iFrame, iTime, iMouse, dt, tar: 2});
+    BCalc({framebuffer: AVT_Y.write, iFrame, iTime, iMouse, dt, tar: 3});
+    BCalc({framebuffer: AMT.write, iFrame, iTime, iMouse, dt, tar: 4});
+    BCalc({framebuffer: ACT.write, iFrame, iTime, iMouse, dt, tar: 5});
+    AXT_X.swap();
+    AXT_Y.swap();
+    AVT_X.swap();
+    AVT_Y.swap();
     AMT.swap();
-    BXT.swap();
-    BVT.swap();
-    BMT.swap();
+    ACT.swap();
     iFrame += 1;
   }
-  lastFrames = framesTodo;
+  CCalc({framebuffer: CTex.write, iFrame, iTime, iMouse, dt: 1, tar: 2});
+  CTex.swap();
+  lastFrames = dF;
+  inRun = false;
 };
 window.addEventListener("mousemove", (e) => {
   iMouse[0] = e.clientX / window.innerWidth;
