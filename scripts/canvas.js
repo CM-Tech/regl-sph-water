@@ -13,5 +13,6 @@ export const regl = createRegl({
     stencil: false,
     antialias: false
   },
+  pixelRatio: 1,
   canvas: c
 });

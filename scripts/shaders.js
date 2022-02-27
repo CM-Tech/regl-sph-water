@@ -2,7 +2,6 @@ import {regl} from "./canvas.js";
 import {TEXTURE_DOWNSAMPLE} from "./constants.js";
 import {AXT_X, AVT_X, AMT, ACT, AXT_Y, AVT_Y, CTex} from "./fbos.js";
 import projectShader from "../shaders/project.js";
-import splatShader from "../shaders/splat.js";
 import commonShader from "../shaders/common.js";
 import AShader from "../shaders/A.js";
 import BShader from "../shaders/B.js";
@@ -22,18 +21,6 @@ export const fullscreen = regl({
     points: [1, 1, 1, -1, -1, -1, 1, 1, -1, -1, -1, 1]
   },
   count: 6
-});
-const splat = regl({
-  frag: splatShader,
-  framebuffer: regl.prop("framebuffer"),
-  uniforms: {
-    uTarget: regl.prop("uTarget"),
-    aspectRatio: ({viewportWidth, viewportHeight}) => viewportWidth / viewportHeight,
-    point: regl.prop("point"),
-    color: regl.prop("color"),
-    radius: regl.prop("radius")
-  },
-  viewport
 });
 const ACalc = regl({
   frag: commonShader + "\n" + AShader,
@@ -123,15 +110,11 @@ export function createSplat(x, y, dx, dy, color, radius) {
     vel: [dx, -dy]
   };
   SCalc({framebuffer: AXT_X.write, iFrame, iTime, iMouse, dt: 1, tar: 0, ...q});
-  SCalc({framebuffer: AXT_Y.write, iFrame, iTime, iMouse, dt: 1, tar: 1, ...q});
   SCalc({framebuffer: AVT_X.write, iFrame, iTime, iMouse, dt: 1, tar: 2, ...q});
-  SCalc({framebuffer: AVT_Y.write, iFrame, iTime, iMouse, dt: 1, tar: 3, ...q});
   SCalc({framebuffer: AMT.write, iFrame, iTime, iMouse, dt: 1, tar: 4, ...q});
   SCalc({framebuffer: ACT.write, iFrame, iTime, iMouse, dt: 1, tar: 5, ...q});
   AXT_X.swap();
-  AXT_Y.swap();
   AVT_X.swap();
-  AVT_Y.swap();
   AMT.swap();
   ACT.swap();
 }
@@ -166,7 +149,7 @@ export const display = () => {
   return displayU({iFrame, iTime, iMouse});
 };
 let fT = 1;
-let fTC = 1;
+let fTC = 30;
 let inRun = false;
 export const update = (config) => {
   if (inRun) {
@@ -177,7 +160,7 @@ export const update = (config) => {
     timeStart = window.performance.now();
   }
   let iTimeS = (window.performance.now() - timeStart) / 1e3;
-  if (timeStarted) {
+  if (timeStarted && iTimeS - lastUpdate < 1) {
     fT *= 0.99;
     fTC *= 0.99;
     fT += (iTimeS - lastUpdate) / lastFrames;
@@ -202,27 +185,19 @@ export const update = (config) => {
     dF += 1;
     r += 1;
     ACalc({framebuffer: AXT_X.write, iFrame, iTime, iMouse, dt, tar: 0});
-    ACalc({framebuffer: AXT_Y.write, iFrame, iTime, iMouse, dt, tar: 1});
     ACalc({framebuffer: AVT_X.write, iFrame, iTime, iMouse, dt, tar: 2});
-    ACalc({framebuffer: AVT_Y.write, iFrame, iTime, iMouse, dt, tar: 3});
     ACalc({framebuffer: AMT.write, iFrame, iTime, iMouse, dt, tar: 4});
     ACalc({framebuffer: ACT.write, iFrame, iTime, iMouse, dt, tar: 5});
     AXT_X.swap();
-    AXT_Y.swap();
     AVT_X.swap();
-    AVT_Y.swap();
     AMT.swap();
     ACT.swap();
     BCalc({framebuffer: AXT_X.write, iFrame, iTime, iMouse, dt, tar: 0});
-    BCalc({framebuffer: AXT_Y.write, iFrame, iTime, iMouse, dt, tar: 1});
     BCalc({framebuffer: AVT_X.write, iFrame, iTime, iMouse, dt, tar: 2});
-    BCalc({framebuffer: AVT_Y.write, iFrame, iTime, iMouse, dt, tar: 3});
     BCalc({framebuffer: AMT.write, iFrame, iTime, iMouse, dt, tar: 4});
     BCalc({framebuffer: ACT.write, iFrame, iTime, iMouse, dt, tar: 5});
     AXT_X.swap();
-    AXT_Y.swap();
     AVT_X.swap();
-    AVT_Y.swap();
     AMT.swap();
     ACT.swap();
     iFrame += 1;
