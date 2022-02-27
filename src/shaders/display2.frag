@@ -64,6 +64,7 @@ void main()
     col.w=1.0;
     // col.xyz=vec3(P.V+0.5,0.0);
     // col.xy=P.X-pos;
+    // col.x=P.M/M_M;
     gl_FragColor=col;
    // particle Pg = getParticle(vec4(1.0,0.5,0.0,1.0), pos);
     //gl_FragColor= vec4(saveParticle(Pg, pos).xy,0.0,1.0);
