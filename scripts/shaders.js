@@ -171,7 +171,7 @@ export const update = (config) => {
   let FPS_T = 30;
   let framesTodo = Math.floor(1 / FPS_T * (fTC / fT));
   lastUpdate = iTimeS;
-  let mxDT = 1.5;
+  let mxDT = 1;
   let mmm = 16;
   if (!(framesTodo < mmm)) {
     framesTodo = mmm;
