@@ -20,7 +20,7 @@ uniform sampler2D CT;
 
 #define V_S 1.
 #define X_S 0.5
-#define M_M 64.0
+#define M_M 16.0
 #define R (vec2(vec2((1./texelSize))))
 #define Bf(p) p
 #define Bi(p) ivec2(p)

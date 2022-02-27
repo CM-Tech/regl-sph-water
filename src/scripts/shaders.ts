@@ -225,8 +225,8 @@ export const update = (config) => {
     }
     let iTimeS = (window.performance.now() - timeStart) / 1000;
     if (timeStarted && (iTimeS - lastUpdate)<1) {
-        fT *= 0.99;
-        fTC *= 0.99;
+        fT *= 0.9;
+        fTC *= 0.9;
         fT += (iTimeS - lastUpdate)/lastFrames;
         fTC += 1;
     }
