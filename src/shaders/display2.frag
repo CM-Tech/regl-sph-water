@@ -39,7 +39,7 @@ void main()
 
     //border render
     vec3 Nb = bN(P.X);
-    float bord = smoothstep(2.*border_h,border_h*0.5,border(pos));
+    float bord = smoothstepp(2.*border_h,border_h*0.5,border(pos));
     
     vec3 dx = vec3(-1., 0., 1.);
 
@@ -51,8 +51,8 @@ void main()
     float specular = pow(max(dot(N, Dir(1.4)), 0.), 3.5);
     float specularb = G(0.4*(Nb.zz - border_h))*pow(max(dot(Nb.xy, Dir(1.4)), 0.), 3.);
     
-    float a = pow(smoothstep(fluid_rho*0., fluid_rho*2., rho.z),0.1);
-    float b = exp(-1.7*smoothstep(fluid_rho*1., fluid_rho*7.5, rho.z));
+    float a = pow(smoothstepp(fluid_rho*0., fluid_rho*2., rho.z),0.1);
+    float b = exp(-1.7*smoothstepp(fluid_rho*1., fluid_rho*7.5, rho.z));
     vec3 col0 = P.C;//vec3(1., 0.5, 0.);
     vec3 col1 = P.C;//vec3(0.1, 0.4, 1.);
 	vec3 fcol =P.C;// mixN(col0, col1, tanh3(vec3(3.*(rho.w - 0.7))).x*0.5 + 0.5);
@@ -62,7 +62,7 @@ void main()
     col.xyz = mixN(col.xyz, 0.*vec3(0.5,0.5,1.), bord);
     col.xyz = tanh3(col.xyz);
     col.w=1.0;
-    // col.xyz=vec3(0.0);
+    // col.xyz=vec3(P.V+0.5,0.0);
     // col.xy=P.X-pos;
     gl_FragColor=col;
    // particle Pg = getParticle(vec4(1.0,0.5,0.0,1.0), pos);

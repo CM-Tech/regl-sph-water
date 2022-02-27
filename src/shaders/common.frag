@@ -1,5 +1,5 @@
-precision lowp float;
-precision lowp sampler2D;
+precision highp float;
+precision highp sampler2D;
 
 uniform vec2 texelSize;
 uniform int iFrame;
@@ -43,7 +43,9 @@ float time;
 
 #define fluid_rho .5
 
-
+float smoothstepp(float a,float b,float c){
+    return smoothstep(a,b,c);//(c-a)/(b-a);
+}
 float shiftRight (float v, float amt) {
   v = floor(v) + 0.5;
   return floor(v / exp2(amt));
@@ -58,7 +60,21 @@ float extractBits (float num, float from, float to) {
     from = floor(from + 0.5); to = floor(to + 0.5);
     return maskLast(shiftRight(num, from), to - from);
 }
+vec4 encode01FloatIntoColorVec4(float p){
+    vec4 v;
+    float pr=floor((256.0*256.0-1.0)*clamp(p,0.0,1.0));
+    v.x=mod(pr,256.0)/255.0;
+    v.y=floor(pr/256.0)/255.0;
+    return v;
+}
+
+float decode01FloatFromColorVec4(vec4 v){
+    vec2 v2=floor(clamp(v.xy,0.0,1.0)*255.0);
+    return (256.0*v2.y+v2.x)/(256.0*256.0-1.0);
+}
+
 vec4 floatToRgba(float texelFloat, bool littleEndian) {
+    return encode01FloatIntoColorVec4((texelFloat+1.0)/2.0);
     if (texelFloat == 0.0) return vec4(0, 0, 0, 0);
     float sign = texelFloat > 0.0 ? 0.0 : 1.0;
     texelFloat = abs(texelFloat);
@@ -144,6 +160,8 @@ float bitsToFloat(bool bits[32]) {
 
 // Decode a 32-bit float from the RGBA color channels of a texel.
 float rgbaToFloat(vec4 texelRGBA, bool littleEndian) {
+
+    return decode01FloatFromColorVec4(texelRGBA)*2.0-1.0;
   ivec4 rgbaBytes = floatsToBytes(texelRGBA, littleEndian);
   bool bits[32];
   bytesToBits(rgbaBytes, bits);
@@ -164,18 +182,7 @@ float decode01FloatFromColorVec2(vec2 v){
     return (256.0*v2.y+v.x)/(256.0*256.0-1.0);
 }
 
-vec2 encode01FloatIntoColorVec4(float p){
-    vec2 v;
-    float pr=floor((256.0*256.0-1.0)*clamp(p,0.0,1.0));
-    v.x=mod(pr,256.0)/255.0;
-    v.y=floor(pr/256.0)/255.0;
-    return v;
-}
 
-float decode01FloatFromColorVec4(vec2 v){
-    vec2 v2=floor(clamp(v,0.0,1.0)*255.0);
-    return (256.0*v2.y+v.x)/(256.0*256.0-1.0);
-}
 
 float Pf(float rho)
 {
@@ -258,8 +265,8 @@ vec8 texelish(sampler2D a,sampler2D b,sampler2D c,vec2 p){
 particle getParticle(vec2 p)
 {
     particle P;
-    P.X=vec2(rgbaToFloat(texture2D(X_XT,p/R),LE),rgbaToFloat(texture2D(X_YT,p/R),LE))+p;
-    P.V=vec2(rgbaToFloat(texture2D(V_XT,p/R),LE),rgbaToFloat(texture2D(V_YT,p/R),LE));
+    P.X=vec2(rgbaToFloat(texture2D(X_XT,p/R).rgba,LE),rgbaToFloat(texture2D(X_XT,p/R).barg,LE))*X_S+p;
+    P.V=vec2(rgbaToFloat(texture2D(V_XT,p/R).rgba,LE),rgbaToFloat(texture2D(V_XT,p/R).barg,LE))*V_S;
     P.M=rgbaToFloat(texture2D(MT,p/R),LE)*M_M;
     P.C=texture2D(CT,p/R).xyz;
     return P;
@@ -270,17 +277,18 @@ vec4 saveParticle(particle P,vec2 pos)
     if(pos.x<1.0 || pos.y<1.0 || pos.x>R.x-1.0 || pos.y>R.y-1.0){
         P.M=0.;
     }
-    P.X=clamp(P.X-pos,vec2(-X_S),vec2(X_S));
-    P.V=clamp(P.V,vec2(-V_S),vec2(V_S));
+    P.X=P.X-pos;
+    P.X=clamp(P.X,vec2(-X_S),vec2(X_S))/X_S;
+    P.V=clamp(P.V,vec2(-V_S),vec2(V_S))/V_S;
     // vec2 XSQ=(P.X-vec2(-X_S))/(2.0*X_S);
     // vec2 VSQ=(P.V-vec2(-V_S))/(2.0*V_S);
     if(tar==0){
-        return floatToRgba(P.X.x,LE);//vec4(encode01FloatIntoColorVec2(XSQ.x),encode01FloatIntoColorVec2(XSQ.y));
+        return vec4(floatToRgba(P.X.x,LE).rg,floatToRgba(P.X.y,LE).rg);//vec4(encode01FloatIntoColorVec2(XSQ.x),encode01FloatIntoColorVec2(XSQ.y));
     }else if(tar==1){
         return floatToRgba(P.X.y,LE);
         // return vec4(encode01FloatIntoColorVec2(VSQ.x),encode01FloatIntoColorVec2(VSQ.y));
     }else if(tar==2){
-        return floatToRgba(P.V.x,LE);
+        return vec4(floatToRgba(P.V.x,LE).rg,floatToRgba(P.V.y,LE).rg);//floatToRgba(P.V.x,LE);
         // return vec4(encode01FloatIntoColorVec2(VSQ.x),encode01FloatIntoColorVec2(VSQ.y));
     }else if(tar==3){
         return floatToRgba(P.V.y,LE);
@@ -334,11 +342,17 @@ vec3 distribution(vec2 x, vec2 p, float K)
 }*/
 
 //diffusion and advection basically
-void Reintegration(inout particle P,vec2 pos)
+particle Reintegration(vec2 pos)
 {
     //basically integral over all updated neighbor distributions
     //that fall inside of this pixel
     //this makes the tracking conservative
+    particle P;
+    P.X=vec2(0.);
+    P.V=vec2(0.);
+    P.M=0.;
+    P.C=vec3(0.);
+
     range(i,-2,2)range(j,-2,2)
     {
         vec2 tpos=pos+vec2(i,j);
@@ -348,7 +362,7 @@ void Reintegration(inout particle P,vec2 pos)
         
         P0.X+=P0.V*dt;//integrate position
         
-        float difR=.9+.21*smoothstep(fluid_rho*0.,fluid_rho*.333,P0.M);
+        float difR=.9+.21*smoothstepp(fluid_rho*0.,fluid_rho*.333,P0.M);
         vec3 D=distribution(P0.X,pos,max(difR,0.001));
         //the deposited mass into this cell
         float m=P0.M*D.z;
@@ -370,11 +384,14 @@ void Reintegration(inout particle P,vec2 pos)
         P.C/=P.M;
     }else{
         P.M=0.;
+        P.C=vec3(0.);
+        P.V=vec2(0.);
     }
+    return P;
 }
 
 //force calculation and integration
-void Simulation(inout particle P,vec2 pos)
+particle Simulation(in particle P,vec2 pos)
 {
     //Compute the SPH force
     vec2 F=vec2(0.);
@@ -418,5 +435,6 @@ void Simulation(inout particle P,vec2 pos)
     //velocity limit
     float v=length(P.V);
     P.V/=(v>1.)?v:1.;
+    return P;
 }
 

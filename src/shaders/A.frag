@@ -10,13 +10,17 @@ void main()
      //R = iResolution.xy;
     time = iTime;
      Mouse = iMouse;
-    ivec2 p = ivec2(pos);
 
     // vec8 data = texelish(XT,VT,MT, pos); 
     
-    particle P;// = getParticle(data, pos);
+    // particle P;// = getParticle(pos);
+    // P.X=vec2(0.0);
+    // P.V=vec2(0.0);
+    // P.M=0.0;
+    // P.C=vec3(0.0);
        
-    Reintegration( P, pos);
+    particle P=Reintegration( pos);
+    // P = getParticle(pos);
    
     //initial condition
     if(iFrame < 1)
