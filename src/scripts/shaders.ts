@@ -237,7 +237,7 @@ export const update = (config) => {
     
     lastUpdate=iTimeS;
     // framesTodo=framesTodo*0.5+lastFrames*0.5;
-    let mxDT = 1.5;
+    let mxDT = 1.0;
     let mmm = 16;//Math.ceil(mxDT);
     if(!(framesTodo<mmm)){
         framesTodo=mmm;
