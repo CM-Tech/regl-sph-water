@@ -20,7 +20,7 @@ uniform sampler2D CT;
 
 #define V_S 1.
 #define X_S 0.5
-#define M_M 16.0
+#define M_M 8.0
 #define R (vec2(vec2((1./texelSize))))
 #define Bf(p) p
 #define Bi(p) ivec2(p)
@@ -62,7 +62,7 @@ float extractBits (float num, float from, float to) {
 }
 vec4 encode01FloatIntoColorVec4(float p){
     vec4 v;
-    float pr=floor((256.0*256.0-1.0)*clamp(p,0.0,1.0));
+    float pr=floor((256.0*256.0-1.0)*clamp(p,0.0,1.0)+0.5);
     v.x=mod(pr,256.0)/255.0;
     v.y=floor(pr/256.0)/255.0;
     return v;
@@ -71,6 +71,20 @@ vec4 encode01FloatIntoColorVec4(float p){
 float decode01FloatFromColorVec4(vec4 v){
     vec2 v2=floor(clamp(v.xy,0.0,1.0)*255.0);
     return (256.0*v2.y+v2.x)/(256.0*256.0-1.0);
+}
+vec4 encode01FloatIntoColorVec4r(float p){
+    vec4 v;
+    float pr=floor((256.0*256.0*256.0*256.0-1.0)*clamp(p,0.0,1.0)+0.5);
+    v.x=floor(mod(pr,256.0))/255.0;
+    v.y=floor(mod(pr/256.0,256.0))/255.0;
+    v.z=floor(mod(pr/256.0/256.0,256.0))/255.0;
+    v.w=floor(mod(pr/256.0/256.0/256.0,256.0))/255.0;
+    return v;
+}
+
+float decode01FloatFromColorVec4r(vec4 v){
+    vec4 v2=floor(clamp(v.xyzw,0.0,1.0)*255.0);
+    return (256.0*256.0*256.0*v2.w+256.0*256.0*v2.z+256.0*v2.y+v2.x)/(256.0*256.0*256.0*256.0-1.0);
 }
 
 vec4 floatToRgba(float texelFloat, bool littleEndian) {
@@ -248,26 +262,12 @@ struct vec8
     float a;
 };
 
-vec8 texelish(sampler2D a,sampler2D b,sampler2D c,vec2 p){
-    vec8 voodo;
-    vec2 X=vec2(decode01FloatFromColorVec2(texture2D(a,p/R).xy),decode01FloatFromColorVec2(texture2D(a,p/R).zw))*(2.0*X_S)+vec2(-X_S);
-    voodo.x=X.x;
-    voodo.y=X.y;
-    vec2 V=vec2(decode01FloatFromColorVec2(texture2D(b,p/R).xy),decode01FloatFromColorVec2(texture2D(b,p/R).zw))*(2.0*V_S)+vec2(-V_S);
-    voodo.z=V.x;
-    voodo.w=V.y;
-    voodo.r=texture2D(c,p/R).x*M_M;
-    voodo.g=texture2D(c,p/R).y;
-    voodo.b=texture2D(c,p/R).z;
-    voodo.a=texture2D(c,p/R).w;
-    return voodo;
-}
 particle getParticle(vec2 p)
 {
     particle P;
     P.X=vec2(rgbaToFloat(texture2D(X_XT,p/R).rgba,LE),rgbaToFloat(texture2D(X_XT,p/R).barg,LE))*X_S+p;
     P.V=vec2(rgbaToFloat(texture2D(V_XT,p/R).rgba,LE),rgbaToFloat(texture2D(V_XT,p/R).barg,LE))*V_S;
-    P.M=rgbaToFloat(texture2D(MT,p/R),LE)*M_M;
+    P.M=decode01FloatFromColorVec4r(texture2D(MT,p/R))*M_M;
     P.C=texture2D(CT,p/R).xyz;
     return P;
 }
@@ -294,7 +294,7 @@ vec4 saveParticle(particle P,vec2 pos)
         return floatToRgba(P.V.y,LE);
         // return vec4(encode01FloatIntoColorVec2(VSQ.x),encode01FloatIntoColorVec2(VSQ.y));
     }else if(tar==4){
-        return floatToRgba(min(max(P.M,0.),M_M)/M_M,LE);// prevent's screen whipe
+        return encode01FloatIntoColorVec4r(min(max(P.M,0.),M_M)/M_M);// prevent's screen whipe
         // return vec4(encode01FloatIntoColorVec2(VSQ.x),encode01FloatIntoColorVec2(VSQ.y));
     }else{
         return vec4(P.C,1.0);// prevent's screen whipe
@@ -363,7 +363,7 @@ particle Reintegration(vec2 pos)
         P0.X+=P0.V*dt;//integrate position
         
         float difR=.9+.21*smoothstepp(fluid_rho*0.,fluid_rho*.333,P0.M);
-        vec3 D=distribution(P0.X,pos,max(difR,0.001));
+        vec3 D=distribution(P0.X,pos,max(difR,0.0000001));
         //the deposited mass into this cell
         float m=P0.M*D.z;
         
@@ -377,7 +377,7 @@ particle Reintegration(vec2 pos)
     }
     
     //normalization
-    if(P.M>0.001)
+    if(P.M>0.0)
     {
         P.X/=P.M;
         P.V/=P.M;
@@ -422,7 +422,7 @@ particle Simulation(in particle P,vec2 pos)
     // }
     
     //integrate
-    P.V+=F*dt/max(P.M,0.001);
+    P.V+=F*dt/max(P.M,0.00000001);
     
     //border
     vec3 N=bN(P.X);
