@@ -39,12 +39,12 @@ void main()
 
     //border render
     vec3 Nb = bN(P.X);
-    float bord = smoothstepp(2.*border_h,border_h*0.5,border(pos));
+    float bord = smoothstepp(1.,0.,border(pos)-border_h*2.0);
     
     vec3 dx = vec3(-1., 0., 1.);
 
     vec4 rho = (V(pos)+V(pos + dx.zy)+V(pos + dx.xy)+V(pos + dx.yz)+V(pos + dx.yx))/5.0;
-    float g=2.0;
+    float g=1.0;
     vec4 grad = -1.0/g*vec4(V(pos + dx.zy*g).zw - V(pos + dx.xy*g).zw,
                          V(pos + dx.yz*g).zw - V(pos + dx.yx*g).zw);
     vec2 N = pow(length(grad.xz),0.2)*normalize(grad.xz+1e-5);

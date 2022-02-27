@@ -28,7 +28,7 @@ void main()
     P.V*=m;
     // P.M.yzw*=m;
     P.C*=m;
-    float am=min(max(fluid_rho*2.0-m,fluid_rho*0.125),fluid_rho*0.5);
+    float am=min(max(fluid_rho*2.0-m,fluid_rho*0.5),fluid_rho*0.5);
     float tm=m+am;
     P.C*=1./tm;
         P.X = (P.X+am*pos)/tm;

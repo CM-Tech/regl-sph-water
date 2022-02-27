@@ -35,7 +35,7 @@ uniform sampler2D CT;
 #define loop(i,x)for(int i=0;i<x;i++)
 #define range(i,a,b)for(int i=a;i<=b;i++)
 
-#define border_h 10.
+#define border_h 8.
 vec4 Mouse;
 float time;
 
@@ -223,8 +223,11 @@ float sdBox(in vec2 p,in vec2 b)
 
 float border(vec2 p)
 {
-    float bound=max(-sdBox(p-R*vec2(.5,.2),R*vec2(.5,.2)),-sdBox(p-R*vec2(.5,.8),R*vec2(1.0,.6)));
-    return bound;
+    float rr=min(R.x,R.y)/sqrt(2.0);
+    vec2 bc=(p-R*vec2(.5,.5));
+    float a=iTime*0.5;
+    float bound=-sdBox(vec2(cos(a)*bc.x-sin(a)*bc.y,cos(a)*bc.y+sin(a)*bc.x),rr*vec2(.5,.5));//max(-sdBox(p-R*vec2(.5,.2),R*vec2(.5,.2)),-sdBox(p-R*vec2(.5,.8),R*vec2(1.0,.6)));
+    return max(-sdBox(p-R*vec2(.5,.8),R*vec2(1.,.3)),bound);
     // float box=sdBox(Rot(0.*time)*(p-R*vec2(.5,.6)),R*vec2(.05,.01));
     // float drain=-sdBox(p-R*vec2(.5,.7),R*vec2(1.5,.5));
     // vec2 pg=p-R*vec2(.5,.5);
@@ -267,6 +270,10 @@ particle getParticle(vec2 p)
     particle P;
     P.X=vec2(rgbaToFloat(texture2D(X_XT,p/R).rgba,LE),rgbaToFloat(texture2D(X_XT,p/R).barg,LE))*X_S+p;
     P.V=vec2(rgbaToFloat(texture2D(V_XT,p/R).rgba,LE),rgbaToFloat(texture2D(V_XT,p/R).barg,LE))*V_S;
+
+    // P.X=(vec2(decode01FloatFromColorVec4r(texture2D(X_XT,p/R)),decode01FloatFromColorVec4r(texture2D(X_YT,p/R)))*2.0-1.0)*X_S+p;
+    // P.V=(vec2(decode01FloatFromColorVec4r(texture2D(V_XT,p/R)),decode01FloatFromColorVec4r(texture2D(V_YT,p/R)))*2.0-1.0)*V_S;
+    
     P.M=decode01FloatFromColorVec4r(texture2D(MT,p/R))*M_M;
     P.C=texture2D(CT,p/R).xyz;
     return P;
@@ -283,14 +290,17 @@ vec4 saveParticle(particle P,vec2 pos)
     // vec2 XSQ=(P.X-vec2(-X_S))/(2.0*X_S);
     // vec2 VSQ=(P.V-vec2(-V_S))/(2.0*V_S);
     if(tar==0){
+        // return encode01FloatIntoColorVec4r(P.X.x/2.0+0.5);
         return vec4(floatToRgba(P.X.x,LE).rg,floatToRgba(P.X.y,LE).rg);//vec4(encode01FloatIntoColorVec2(XSQ.x),encode01FloatIntoColorVec2(XSQ.y));
     }else if(tar==1){
-        return floatToRgba(P.X.y,LE);
+        return encode01FloatIntoColorVec4r(P.X.y/2.0+0.5);
         // return vec4(encode01FloatIntoColorVec2(VSQ.x),encode01FloatIntoColorVec2(VSQ.y));
     }else if(tar==2){
+        // return encode01FloatIntoColorVec4r(P.V.x/2.0+0.5);
         return vec4(floatToRgba(P.V.x,LE).rg,floatToRgba(P.V.y,LE).rg);//floatToRgba(P.V.x,LE);
         // return vec4(encode01FloatIntoColorVec2(VSQ.x),encode01FloatIntoColorVec2(VSQ.y));
     }else if(tar==3){
+        // return encode01FloatIntoColorVec4r(P.V.y/2.0+0.5);
         return floatToRgba(P.V.y,LE);
         // return vec4(encode01FloatIntoColorVec2(VSQ.x),encode01FloatIntoColorVec2(VSQ.y));
     }else if(tar==4){
@@ -352,7 +362,7 @@ particle Reintegration(vec2 pos)
     P.V=vec2(0.);
     P.M=0.;
     P.C=vec3(0.);
-
+// SHOULD BE -2,2 but -1,1 is faster and doesnt lose much
     range(i,-2,2)range(j,-2,2)
     {
         vec2 tpos=pos+vec2(i,j);
@@ -363,7 +373,7 @@ particle Reintegration(vec2 pos)
         P0.X+=P0.V*dt;//integrate position
         
         float difR=.9+.21*smoothstepp(fluid_rho*0.,fluid_rho*.333,P0.M);
-        vec3 D=distribution(P0.X,pos,max(difR,0.0000001));
+        vec3 D=distribution(P0.X,pos,difR);
         //the deposited mass into this cell
         float m=P0.M*D.z;
         
@@ -408,7 +418,7 @@ particle Simulation(in particle P,vec2 pos)
     avgV.xy/=avgV.z;
     
     //viscosity
-    F+=0.*P.M*(avgV.xy-P.V);
+    F+=0.1*P.M*(avgV.xy-P.V);
     
     //gravity
     F+=P.M*vec2(0.,-.004);
@@ -427,11 +437,11 @@ particle Simulation(in particle P,vec2 pos)
     //border
     vec3 N=bN(P.X);
     float vdotN=step(N.z,border_h)*dot(-N.xy,P.V);
-    P.V+=.5*(N.xy*vdotN+N.xy*abs(vdotN));
-    P.V+=0.*P.M*N.xy*step(abs(N.z),border_h)*exp(-N.z);
+    // P.V+=10.0*(N.xy*vdotN+N.xy*abs(vdotN));
+    P.V+=10.*P.M*N.xy*step(abs(N.z),border_h)*exp(-N.z);
     
-    if(N.z<0.)P.V=vec2(0.);
-    
+    //if(N.z<0.)P.V=vec2(0.);
+
     //velocity limit
     float v=length(P.V);
     P.V/=(v>1.)?v:1.;

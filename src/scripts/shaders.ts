@@ -227,8 +227,8 @@ export const update = (config) => {
     if (timeStarted && (iTimeS - lastUpdate)<1) {
         fT *= 0.9;
         fTC *= 0.9;
-        fT += (iTimeS - lastUpdate)/lastFrames;
-        fTC += 1;
+        fT += (iTimeS - lastUpdate);
+        fTC += lastFrames;
     }
     timeStarted = true;
     let r = 0;
